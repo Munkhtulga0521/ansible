@@ -16,28 +16,29 @@
           - show ip interface brief
       register: int_brief
 
-    - name: Extract interfaces with IPs in range 9 to 99
+    - name: Extract matching interface names (with IP)
       set_fact:
         target_interfaces: >-
           {{
             int_brief.stdout[0].splitlines()
-            | select('search', '^GigabitEthernet0/0/2\.(?:[9-9]|[1-9][0-9])')
-            | select('search', '\d+\.\d+\.\d+\.\d+')
+            | map('regex_search', '^(GigabitEthernet0/0/2\.(?:[9-9]|[1-9][0-9]))\s+(\d+\.\d+\.\d+\.\d+)')
+            | select('!=', None)
+            | map('first')
             | list
           }}
 
     - name: Get ARP table for each interface
       ios_command:
-        commands: "{{ target_interfaces | map('regex_search', '^(\\S+)') | map('first') | map('regex_replace', '^(.*)$', 'show arp interface \\1') | list }}"
+        commands: "{{ target_interfaces | map('regex_replace', '^(.*)$', 'show arp interface \\1') | list }}"
       register: arp_outputs
       when: target_interfaces | length > 0
 
     - name: Display ARP per interface
       debug:
-        msg: "{{ arp_outputs.stdout_lines }}"
+        var: arp_outputs.stdout_lines
       when: target_interfaces | length > 0
 
     - name: No interfaces found
       debug:
-        msg: "No interfaces with IP addresses in the range found."
+        msg: "No matching interfaces with IP addresses."
       when: target_interfaces | length == 0
