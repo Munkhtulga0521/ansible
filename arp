@@ -1,16 +1,14 @@
 ---
 - name: Cisco Playbook - Check ARP for each interface
-  hosts: switch2
+  hosts: switch1   # match the name in your inventory
   gather_facts: false
   connection: network_cli
 
   vars:
     ansible_network_os: cisco.ios.ios
-    ansible_user: your_username
-    ansible_password: your_password
     ansible_become: yes
     ansible_become_method: enable
-    ansible_become_password: your_enable_password
+    ansible_become_password: enablepass  # change to actual enable password
 
   tasks:
     - name: Get ARP table
