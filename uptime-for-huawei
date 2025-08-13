@@ -4,11 +4,11 @@
   connection: network_cli
 
   tasks:
-    - name: Run 'display version' to get uptime info
-      ansible.netcommon.cli_command:
-        command: display version
+    - name: Run 'display version' using huawei.vrp module
+      huawei.vrp.vrp_command:
+        commands:
+          - display version
       register: output
 
-    - name: Show uptime output
-      debug:
-        msg: "{{ output.stdout }}"
+    - debug:
+        msg: "{{ output.stdout[0] }}"
