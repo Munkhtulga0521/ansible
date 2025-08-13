@@ -7,7 +7,7 @@
     - name: Show uptime of Cisco IOS routers
       ios_command:
         commands:
-          - show version | include uptime
+          - show interface status 
       register: output
 
     - name: Print/display output
