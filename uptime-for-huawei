@@ -1,6 +1,6 @@
 ---
 - name: My first Cisco Playbook (Show how long the router has been up)
-  hosts: cisco_routers
+  hosts: 10.255.255.33
   gather_facts: false
 
   tasks:
