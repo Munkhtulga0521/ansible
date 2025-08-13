@@ -1,15 +1,15 @@
 ---
-- name: My first Cisco Playbook (Show how long the router has been up)
+- name: Cisco Playbook - Check ARP for each interface
   hosts: switch1
   gather_facts: false
 
   tasks:
-    - name: Show uptime of Cisco IOS routers
+    - name: Get ARP table
       ios_command:
         commands:
-          - show interface status 
-      register: output
+          - show ip arp
+      register: arp_output
 
-    - name: Print/display output
+    - name: Display ARP table
       debug:
-        var: output.stdout_lines
+        var: arp_output.stdout_lines
