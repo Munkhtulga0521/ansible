@@ -1,6 +1,6 @@
 ---
 - name: Cisco Playbook - Check ARP for each interface
-  hosts: switch2
+  hosts: switch1
   gather_facts: false
 
   tasks:
