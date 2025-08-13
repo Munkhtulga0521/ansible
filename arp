@@ -1,4 +1,4 @@
-- name: Cisco Playbook - Check ARP for each interface
+- name: Cisco Playbook - Extract interface list safely
   hosts: switch1
   gather_facts: false
   connection: network_cli
@@ -16,34 +16,21 @@
           - show ip interface brief
       register: int_brief
 
-    - name: Extract matching interface names
+    - name: Split lines and skip header
+      set_fact:
+        interface_lines: "{{ int_brief.stdout[0].splitlines()[1:] }}"
+
+    - name: Extract interfaces with IP in desired range
       set_fact:
         target_interfaces: >-
           {{
-            int_brief.stdout[0].splitlines()[1:]    # skip header
-            | map('regex_search', '^([^ ]+)\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)')
+            interface_lines
+            | map('regex_search', '^(GigabitEthernet0/0/2\\.(?:[9-9]|[1-9][0-9]))\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)')
             | select('!=', None)
-            | selectattr('0', 'search', '^GigabitEthernet0/0/2\\.(9|[1-9][0-9])$')
             | map('first')
             | list
           }}
 
-    - name: Debug found interfaces
+    - name: Show extracted interfaces
       debug:
         var: target_interfaces
-
-    - name: Get ARP table for each interface
-      ios_command:
-        commands: "{{ target_interfaces | map('regex_replace', '^(.*)$', 'show arp interface \\1') | list }}"
-      register: arp_outputs
-      when: target_interfaces | length > 0
-
-    - name: Display ARP per interface
-      debug:
-        var: arp_outputs.stdout_lines
-      when: target_interfaces | length > 0
-
-    - name: No interfaces found
-      debug:
-        msg: "No matching interfaces with IP addresses."
-      when: target_interfaces | length == 0
