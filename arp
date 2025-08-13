@@ -1,6 +1,5 @@
----
 - name: Cisco Playbook - Check ARP for each interface
-  hosts: switch1   # match the name in your inventory
+  hosts: switch1
   gather_facts: false
   connection: network_cli
 
@@ -8,15 +7,37 @@
     ansible_network_os: cisco.ios.ios
     ansible_become: yes
     ansible_become_method: enable
-    ansible_become_password: ATL@nt1$
+    ansible_become_password: "ATL@nt1$"
 
   tasks:
-    - name: Get ARP table
+    - name: Get interface brief
       ios_command:
         commands:
-          - show ip arp
-      register: arp_output
+          - show ip interface brief
+      register: int_brief
 
-    - name: Display ARP table
+    - name: Extract interfaces with IPs in range 9 to 99
+      set_fact:
+        target_interfaces: >-
+          {{
+            int_brief.stdout[0].splitlines()
+            | select('search', '^GigabitEthernet0/0/2\.(?:[9-9]|[1-9][0-9])')
+            | select('search', '\d+\.\d+\.\d+\.\d+')
+            | list
+          }}
+
+    - name: Get ARP table for each interface
+      ios_command:
+        commands: "{{ target_interfaces | map('regex_search', '^(\\S+)') | map('first') | map('regex_replace', '^(.*)$', 'show arp interface \\1') | list }}"
+      register: arp_outputs
+      when: target_interfaces | length > 0
+
+    - name: Display ARP per interface
       debug:
-        var: arp_output.stdout_lines
+        msg: "{{ arp_outputs.stdout_lines }}"
+      when: target_interfaces | length > 0
+
+    - name: No interfaces found
+      debug:
+        msg: "No interfaces with IP addresses in the range found."
+      when: target_interfaces | length == 0
