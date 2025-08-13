@@ -1,4 +1,4 @@
-- name: Cisco Playbook - Extract interface list safely
+- name: Cisco Playbook - Extract all subinterfaces
   hosts: switch1
   gather_facts: false
   connection: network_cli
@@ -20,12 +20,12 @@
       set_fact:
         interface_lines: "{{ int_brief.stdout[0].splitlines()[1:] }}"
 
-    - name: Extract interfaces with IP in desired range
+    - name: Extract all subinterfaces
       set_fact:
         target_interfaces: >-
           {{
             interface_lines
-            | map('regex_search', '^(GigabitEthernet0/0/2\\.(?:[9-9]|[1-9][0-9]))\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)')
+            | map('regex_search', '^(GigabitEthernet0/0/2\\.(?:[0-9]+))')
             | select('!=', None)
             | map('first')
             | list
