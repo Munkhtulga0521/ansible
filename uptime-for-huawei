@@ -4,7 +4,7 @@
   connection: network_cli
 
   tasks:
-    - name: Run 'display version' using huawei.vrp module
+    - name: Get system info using huawei.vrp
       huawei.vrp.vrp_command:
         commands:
           - display version
