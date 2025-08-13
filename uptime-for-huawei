@@ -1,14 +1,15 @@
-- name: Show uptime on Cisco switches
-  hosts: cisco_switches
-  gather_facts: no
-  connection: network_cli
+---
+- name: My first Cisco Playbook (Show how long the router has been up)
+  hosts: cisco_routers
+  gather_facts: false
 
   tasks:
-    - name: Run 'show version' to get uptime info
-      ansible.netcommon.cli_command:
-        command: show version
+    - name: Show uptime of Cisco IOS routers
+      ios_command:
+        commands:
+          - show version | include uptime
       register: output
 
-    - name: Show uptime output
+    - name: Print/display output
       debug:
-        msg: "{{ output.stdout }}"
+        var: output.stdout_lines
