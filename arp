@@ -1,5 +1,6 @@
-- name: Cisco Playbook - Extract all subinterfaces
-  hosts: switch1
+---
+- name: Cisco Playbook - Check ARP for each interface
+  hosts: switch1   # match the name in your inventory
   gather_facts: false
   connection: network_cli
 
@@ -7,30 +8,15 @@
     ansible_network_os: cisco.ios.ios
     ansible_become: yes
     ansible_become_method: enable
-    ansible_become_password: "ATL@nt1$"
+    ansible_become_password: enablepass  # change to actual enable password
 
   tasks:
-    - name: Get interface brief
+    - name: Get ARP table
       ios_command:
         commands:
-          - show ip interface brief
-      register: int_brief
+          - show ip arp
+      register: arp_output
 
-    - name: Split lines and skip header
-      set_fact:
-        interface_lines: "{{ int_brief.stdout[0].splitlines()[1:] }}"
-
-    - name: Extract all subinterfaces
-      set_fact:
-        target_interfaces: >-
-          {{
-            interface_lines
-            | map('regex_search', '^(GigabitEthernet0/0/2\\.(?:[0-9]+))')
-            | select('!=', None)
-            | map('first')
-            | list
-          }}
-
-    - name: Show extracted interfaces
+    - name: Display ARP table
       debug:
-        var: target_interfaces
+        var: arp_output.stdout_lines
