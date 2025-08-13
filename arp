@@ -1,0 +1,14 @@
+- name: My first Cisco Playbook (Show how long the router has been up)
+  hosts: switch1
+  gather_facts: false
+
+  tasks:
+    - name: Show uptime of Cisco IOS routers
+      ios_command:
+        commands:
+          - show ip arp 
+      register: output
+
+    - name: Print/display output
+      debug:
+        var: output.stdout_lines
