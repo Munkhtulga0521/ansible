@@ -1,12 +1,12 @@
-- name: Show uptime on Huawei routers
-  hosts: huawei_routers
+- name: Show uptime on Cisco switches
+  hosts: cisco_switches
   gather_facts: no
   connection: network_cli
 
   tasks:
-    - name: Run 'display version' to get uptime info
+    - name: Run 'show version' to get uptime info
       ansible.netcommon.cli_command:
-        command: display version
+        command: show version
       register: output
 
     - name: Show uptime output
