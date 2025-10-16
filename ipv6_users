@@ -1,0 +1,22 @@
+- name: Collect IPv6 DHCP users from Huawei routers
+  hosts: huawei_routers
+  gather_facts: no
+  tasks:
+
+    - name: Get total IPv6 users
+      huawei.vrp.vrp_command:
+        commands: display ipv6 dhcp statistics | include "Total users"
+      register: dhcpv6_stats
+
+    - name: Extract the number of users
+      set_fact:
+        total_users: "{{ dhcpv6_stats.stdout[0].split(':')[-1] | trim }}"
+
+    - name: Write Prometheus metric file
+      copy:
+        dest: "/var/lib/node_exporter/textfile_collector/ipv6_users_{{ inventory_hostname }}.prom"
+        content: |
+          # HELP huawei_ipv6_total_users Total IPv6 users on Huawei router
+          # TYPE huawei_ipv6_total_users gauge
+          huawei_ipv6_total_users{router="{{ inventory_hostname }}"} {{ total_users }}
+      delegate_to: localhost
